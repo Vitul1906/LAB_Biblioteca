@@ -1,6 +1,6 @@
-package com.example.acervo;
+package br.vitor_costa_lemos.acervo;
 
-import com.example.acervo.aplicacao.ConsoleApp;
+import br.vitor_costa_lemos.acervo.aplicacao.ConsoleApp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

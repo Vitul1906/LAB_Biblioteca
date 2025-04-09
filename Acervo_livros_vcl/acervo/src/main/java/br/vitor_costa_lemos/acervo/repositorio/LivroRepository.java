@@ -1,6 +1,6 @@
-package com.example.acervo.repositorio;
+package br.vitor_costa_lemos.acervo.repositorio;
 
-import com.example.acervo.entidade.Livro;
+import br.vitor_costa_lemos.acervo.entidade.Livro;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

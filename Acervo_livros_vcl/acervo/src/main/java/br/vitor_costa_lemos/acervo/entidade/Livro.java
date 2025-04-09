@@ -1,4 +1,4 @@
-package com.example.acervo.entidade;
+package br.vitor_costa_lemos.acervo.entidade;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,19 +13,20 @@ public class Livro {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Id
-    private Long id2;
-
     private String titulo;
     private String autor;
     private int anoPublicacao;
     private String editora;
 
-    public Livro(String titulo, String autor, int anoPublicacao, String editora) {
+    @ManyToOne
+    @JoinColumn(name = "biblioteca_id")
+    private Biblioteca biblioteca;
+
+    public Livro(String titulo, String autor, int anoPublicacao, String editora, Biblioteca biblioteca) {
         this.titulo = titulo;
         this.autor = autor;
         this.anoPublicacao = anoPublicacao;
         this.editora = editora;
+        this.biblioteca = biblioteca;
     }
-
 }

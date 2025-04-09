@@ -1,7 +1,9 @@
-package com.example.acervo.aplicacao;
+package br.vitor_costa_lemos.acervo.aplicacao;
 
-import com.example.acervo.entidade.Livro;
-import com.example.acervo.repositorio.LivroRepository;
+import br.vitor_costa_lemos.acervo.entidade.Biblioteca;
+import br.vitor_costa_lemos.acervo.entidade.Livro;
+import br.vitor_costa_lemos.acervo.repositorio.BibliotecaRepository;
+import br.vitor_costa_lemos.acervo.repositorio.LivroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,19 +16,18 @@ public class ConsoleApp {
     @Autowired
     private LivroRepository livroRepository;
 
+    @Autowired
+    private BibliotecaRepository bibliotecaRepository;
+
     private final Scanner scanner = new Scanner(System.in);
 
     public void iniciar() {
-        try {
-            int opcao;
-            do {
-                exibirMenu();
-                opcao = obterOpcaoUsuario();
-                processarOpcao(opcao);
-            } while (opcao != 0);
-        } finally {
-            scanner.close(); // Fechando o scanner no final para evitar vazamentos de recursos
-        }
+        int opcao;
+        do {
+            exibirMenu();
+            opcao = obterOpcaoUsuario();
+            processarOpcao(opcao);
+        } while (opcao != 0);
     }
 
     private void exibirMenu() {
@@ -46,7 +47,7 @@ public class ConsoleApp {
             scanner.next();
         }
         int opcao = scanner.nextInt();
-        scanner.nextLine(); // Consumir a quebra de linha
+        scanner.nextLine(); // Consumir quebra de linha
         return opcao;
     }
 
@@ -73,7 +74,6 @@ public class ConsoleApp {
         System.out.print("Editora: ");
         String editora = scanner.nextLine();
 
-        // Validação de campos obrigatórios
         if (titulo.isBlank() || autor.isBlank()) {
             System.out.println("Título e autor são obrigatórios.");
             return;
@@ -84,17 +84,50 @@ public class ConsoleApp {
             return;
         }
 
-        livroRepository.save(new Livro(titulo, autor, ano, editora));
+        Biblioteca biblioteca = escolherBiblioteca();
+        if (biblioteca == null) {
+            System.out.println("Nenhuma biblioteca válida selecionada.");
+            return;
+        }
+
+        livroRepository.save(new Livro(titulo, autor, ano, editora, biblioteca));
         System.out.println("Livro cadastrado com sucesso!");
+    }
+
+    private Biblioteca escolherBiblioteca() {
+        List<Biblioteca> bibliotecas = bibliotecaRepository.findAll();
+        if (bibliotecas.isEmpty()) {
+            System.out.println("Nenhuma biblioteca encontrada. Cadastre pelo menos uma no banco.");
+            return null;
+        }
+
+        System.out.println("\nEscolha a biblioteca:");
+        for (int i = 0; i < bibliotecas.size(); i++) {
+            Biblioteca b = bibliotecas.get(i);
+            System.out.printf("%d. %s (%s)\n", i + 1, b.getNome(), b.getLocal());
+        }
+
+        int opcao;
+        do {
+            System.out.print("Digite o número correspondente à biblioteca: ");
+            opcao = obterInteiro();
+        } while (opcao < 1 || opcao > bibliotecas.size());
+
+        return bibliotecas.get(opcao - 1);
     }
 
     private void listarLivros() {
         System.out.println("\n[Listagem Completa do Acervo]");
-        System.out.println("ID | Título                          | Autor            | Ano | Editora");
-        System.out.println("---------------------------------------------------------------------------");
+        System.out.println("ID | Título                          | Autor            | Ano | Editora       | Biblioteca");
+        System.out.println("---------------------------------------------------------------------------------------------");
         livroRepository.findAll().forEach(l ->
-                System.out.printf("%2d | %-30s | %-15s | %4d | %s\n",
-                        l.getId(), l.getTitulo(), l.getAutor(), l.getAnoPublicacao(), l.getEditora())
+                System.out.printf("%2d | %-30s | %-15s | %4d | %-13s | %s\n",
+                        l.getId(),
+                        l.getTitulo(),
+                        l.getAutor(),
+                        l.getAnoPublicacao(),
+                        l.getEditora(),
+                        l.getBiblioteca() != null ? l.getBiblioteca().getNome() : "N/D")
         );
     }
 
@@ -125,7 +158,7 @@ public class ConsoleApp {
             scanner.next();
         }
         int valor = scanner.nextInt();
-        scanner.nextLine(); // Consumir a quebra de linha
+        scanner.nextLine(); // Consumir quebra de linha
         return valor;
     }
 
@@ -133,9 +166,10 @@ public class ConsoleApp {
         if (livros.isEmpty()) {
             System.out.println("Nenhum livro encontrado.");
         } else {
-            livros.forEach(l ->
-                    System.out.printf("- %s, por %s (%d, %s)\n", l.getTitulo(), l.getAutor(), l.getAnoPublicacao(), l.getEditora())
-            );
+            livros.forEach(l -> System.out.printf("- %s, por %s (%d, %s) [Biblioteca: %s]\n",
+                    l.getTitulo(), l.getAutor(), l.getAnoPublicacao(),
+                    l.getEditora(),
+                    l.getBiblioteca() != null ? l.getBiblioteca().getNome() : "N/D"));
         }
     }
 }
